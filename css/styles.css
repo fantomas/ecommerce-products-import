@@ -1,0 +1,23 @@
+::-moz-selection{background:#8494A3;color:#fff;text-shadow:none}
+::selection{background:#8494A3;color:#fff;text-shadow:none}
+.container {
+    padding-top: 50px;
+    margin: 50px auto !important;
+}
+.content {
+    border-left: 1px solid #E5E5E5;
+}
+#step2 input[type="text"], #step2 select, #step2 .notes {
+    margin-bottom: 10px;
+}
+#step2 .notes {
+    display: block;
+}
+hr.table-row {
+    clear: both;
+    border: 0;
+}
+
+table.preview-csv {
+    overflow: auto;
+}
