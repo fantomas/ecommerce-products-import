@@ -52,10 +52,15 @@ $app->map('/step1', function () use ($app) {
 		//print_r($_FILES);
 		$filename = $_FILES['csv-file']['name'];
 		$new_upload = 'files/' . $filename;
-		move_uploaded_file($_FILES['csv-file']['tmp_name'], $new_upload);
-		$app->redirect('/ecommerce-products-import/step2');
+		if(move_uploaded_file($_FILES['csv-file']['tmp_name'], $new_upload)) {
+			$app->flash('message','File uploaded!');
+			$app->redirect('./step2');
+		} else {
+			$app->flash('errors', 'unable to upload file');
+			$app->render('step1.php');
+		}
     } else {
-		$app->render('step1.php'); 
+		$app->render('step1.php');
 	}    
 })->via('GET','POST');
 
