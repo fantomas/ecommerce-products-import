@@ -17,8 +17,6 @@
                         <li class="uk-nav-header">Main menu</li>
                         <li><a href="./step1"><i class="uk-icon-upload"></i> Upload</a></li>
                         <li><a href="./step2"><i class="uk-icon-list-ol"></i> Map</a></li>
-                        <li class="uk-nav-divider"></li>
-                        <li><a href=""><i class="uk-icon-download"></i> Export</a></li>
                     </ul>
                     {% endblock %}
                 </div>

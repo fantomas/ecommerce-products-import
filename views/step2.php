@@ -10,7 +10,7 @@
 	{{filename}}
     <form id="step2" class="uk-form" action="/ecommerce-products-import/step2" method="POST">
         <div class="uk-grid">
-            <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[0] }}" disabled></div>
+            <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[0] }}*" disabled></div>
             <div class="uk-width-1-4">
                 <select class="uk-form-width-medium" name="{{ csv_mapping[0] }}">
 					{% for key, field in csv_uploaded_columns %}
@@ -18,7 +18,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><p class="uk-width-1-3">test</p></div>
+            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Required field. SKU number</div>
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[1] }}" disabled></div>
@@ -29,7 +29,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Layout modifiers can also be added to a <code>&lt;fieldset&gt;</code> element. This means, if you use fieldsets, you can have different form layouts for each fieldset.</div>
+            <!--<div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Layout modifiers can also be added to a <code>&lt;fieldset&gt;</code> element. This means, if you use fieldsets, you can have different form layouts for each fieldset.</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[2] }}" disabled></div>
@@ -40,7 +40,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[3] }}" disabled></div>
@@ -51,7 +51,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[4] }}" disabled></div>
@@ -62,7 +62,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[5] }}" disabled></div>
@@ -73,7 +73,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[6] }}" disabled></div>
@@ -84,7 +84,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[7] }}" disabled></div>
@@ -95,7 +95,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[8] }}" disabled></div>
@@ -106,7 +106,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[9] }}" disabled></div>
@@ -117,7 +117,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[10] }}" disabled></div>
@@ -128,7 +128,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[11] }}" disabled></div>
@@ -139,7 +139,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[12] }}" disabled></div>
@@ -150,7 +150,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[13] }}" disabled></div>
@@ -161,7 +161,7 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
             <hr class="table-row">
 
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[14] }}" disabled></div>
@@ -172,7 +172,29 @@
 					{% endfor %}
                 </select>
             </div>
-            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div>
+            <!-- <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Sample info</div> -->
+            <hr class="table-row">
+			
+			<div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[15] }}" disabled></div>
+            <div class="uk-width-1-4">
+                <select class="uk-form-width-medium" name="{{ csv_mapping[15] }}">
+                    {% for key, field in csv_uploaded_columns %}
+					<option value="{{ key }}">{{ field }}</option>
+					{% endfor %}
+                </select>
+            </div>
+            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> Main image url. This field will not be in csv export</div>
+            <hr class="table-row">
+			
+			<div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[16] }}" disabled></div>
+            <div class="uk-width-1-4">
+                <select class="uk-form-width-medium" name="{{ csv_mapping[16] }}">
+                    {% for key, field in csv_uploaded_columns %}
+					<option value="{{ key }}">{{ field }}</option>
+					{% endfor %}
+                </select>
+            </div>
+            <div class="uk-width-1-2 notes"><span class="uk-badge">NOTE</span> One or more image urls divided by |. This field will not be in csv export</div>
             <hr class="table-row">
         </div>
 		<button class="uk-button uk-button-primary uk-button-large uk-float-right" type="submit">Export</button>

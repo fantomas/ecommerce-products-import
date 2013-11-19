@@ -8,18 +8,18 @@
 require 'vendor/autoload.php';
 
 $app = new \Slim\Slim(array(
-    'debug' => true,	
-	'templates.path' => './views',
-	//'log.level' => 4,
+    'debug' => true,
+    'templates.path' => './views',
+    //'log.level' => 4,
     //'log.enabled' => true,
     //'log.writer' => new \Slim\Extras\Log\DateTimeFileWriter(array(
     //    'path' => '../logs',
     //    'name_format' => 'y-m-d'
     //)),
-	'view' => new \Slim\Views\Twig(),
-	'cookies.lifetime' => '20 minutes',
-	'cookies.encrypt' => false
-));
+    'view' => new \Slim\Views\Twig(),
+    'cookies.lifetime' => '20 minutes',
+    'cookies.encrypt' => false
+        ));
 
 $app->add(new \Slim\Middleware\SessionCookie(array('secret' => 'myappsecret')));
 
@@ -27,7 +27,7 @@ $app->add(new \Slim\Middleware\SessionCookie(array('secret' => 'myappsecret')));
 $app->view()->parserOptions = array(
     'debug' => true,
     'cache' => dirname(__FILE__) . '/cache',
-	'charset' => 'utf-8',
+    'charset' => 'utf-8',
     'auto_reload' => true,
     'strict_variables' => false,
     'autoescape' => true
@@ -39,156 +39,168 @@ $app->view->parserExtensions = array(
 
 
 // GET route
-$app->get( '/', function () use ($app) {
-	
-	//copyRemote("http://85.14.28.164/d/images/slideshows/0000053031-middle.jpg", 'files/test.jpg');
-	//$pageTitle = 'hello world';
-    //$body = 'sup world';
+$app->get('/', function () use ($app) {
 
-	
+    //copyRemote("http://85.14.28.164/d/images/slideshows/0000053031-middle.jpg", 'files/test.jpg');
+    //$pageTitle = 'hello world';
+    //$body = 'sup world';
     //$app->view()->setData(array('title' => $pageTitle, 'body' => $body));
     $app->render('step1.php');
-	//$app->render('../views/index.php', array('title' => 'Sahara'));
+    //$app->render('../views/index.php', array('title' => 'Sahara'));
 });
 
-$app->map('/step1', function () use ($app) { 
-    if($app->request()->isPost()) {
-		//print_r($_FILES);
-		$filename = $_FILES['csv-file']['name'];
-		$new_upload = 'files/' . $filename;
-		if(move_uploaded_file($_FILES['csv-file']['tmp_name'], $new_upload)) {
-			$_SESSION['csv-file'] = $filename;
-			$app->flash('message','File uploaded!');
-			$app->redirect('./step2');
-		} else {
-			$app->flash('errors', 'unable to upload file');
-			$app->render('step1.php');
-		}
+$app->map('/step1', function () use ($app) {
+    if ($app->request()->isPost()) {
+        //print_r($_FILES);
+        $filename = $_FILES['csv-file']['name'];
+        $new_upload = 'files/' . $filename;
+        if (move_uploaded_file($_FILES['csv-file']['tmp_name'], $new_upload)) {
+            $_SESSION['csv-file'] = $filename;
+            $app->flash('message', 'File uploaded!');
+            $app->redirect('./step2');
+        } else {
+            $app->flash('errors', 'unable to upload file');
+            $app->render('step1.php');
+        }
     } else {
-		$app->render('step1.php');
-	}    
-})->via('GET','POST');
+        $app->render('step1.php');
+    }
+})->via('GET', 'POST');
 
 $app->map('/step2', function () use ($app) {
-	$csv_mapping = array(
-			'ProductCode',
-			'ManufacturerName',
-			'CategoryName',
-			'CategoryBranch',
-			'ProductIsActive',
-			'ProductName',
-			'ProductDescription',
-			'ProductDescriptionXHTML',
-			'ProductDetailedDescription',
-			'ProductDetailedDescriptionXHTML',
-			'ProductPrice',
-			'ProductWeight',
-			'ProductQuantity',
-			'ProductIsEgood',
-			'ProductClassName'
-		);
+    $csv_mapping = array(
+        'ProductCode',
+        'ManufacturerName',
+        'CategoryName',
+        'CategoryBranch',
+        'ProductIsActive',
+        'ProductName',
+        'ProductDescription',
+        'ProductDescriptionXHTML',
+        'ProductDetailedDescription',
+        'ProductDetailedDescriptionXHTML',
+        'ProductPrice',
+        'ProductWeight',
+        'ProductQuantity',
+        'ProductIsEgood',
+        'ProductClassName',
+        'ProductMainImage',
+        'ProductImages',
+    );
 
-    if($app->request()->isPost()) {
-		//print_r($_FILES);
-		$filename = $_SESSION['csv-file'];
-		
-		$csv_mapping_user = array_flip($csv_mapping);
-		foreach($csv_mapping_user as $key => $column) {
-			$csv_mapping_user[$key] = $_POST[$key];
-		}
-		//var_dump($csv_mapping_user);
-		
-		$csv = parseCSV('files/'.$_SESSION['csv-file']);
-		
-		$csv_ordered = array();
-		
-		foreach ($csv as $num => $line) {
-			foreach ($csv_mapping_user as $column => $value) {
-				if($line[$value-1]) {
-					$csv_ordered[$num][$column] =  $line[$value-1];
-				}
-			}
-		}
-		
-		
-		//var_dump($csv_ordered);
-		$dir = "./files/".pathinfo($filename, PATHINFO_FILENAME);
-		var_dump($dir);
-		if(!is_dir($dir)) { mkdir( $dir ); }
-		
-		$fp = fopen($dir.'/'.$filename, 'w');
+    if ($app->request()->isPost()) {
+        $filename = $_SESSION['csv-file'];
+        $code = pathinfo($filename, PATHINFO_FILENAME);
 
-		foreach ($csv_ordered as $fields) {
-			fputcsv($fp, $fields);
-		}
+        $csv_mapping_user = array_flip($csv_mapping);
+        foreach ($csv_mapping_user as $key => $column) {
+            $csv_mapping_user[$key] = $_POST[$key];
+        }
+        //var_dump($csv_mapping_user);
 
-		fclose($fp);
-		
-		//$test = addzip (dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME) , dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME).".zip" );
-		//var_dump($test);
-		
-		/* Export zip file */
-		$zipname = pathinfo($filename, PATHINFO_FILENAME).'.zip';
-		$file = tempnam("tmp", "zip");
-		$zip = new ZipArchive;
-		$path = "./files/".$zipname;
-		//var_dump($path);
-		if (!$zip->open($file, ZIPARCHIVE::OVERWRITE))
-			die("Failed to create archive\n");
-		//$zip->open('files/'.$zipname, ZipArchive::CREATE);
-		if ($handle = opendir(dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME))) {
-		  while (false !== ($entry = readdir($handle))) {
-		  //var_dump($entry);
-			if ($entry != "." && $entry != "..") {
-				$zip->addFile($entry);
-			}
-		  }
-		  closedir($handle);
-		}
+        $csv = parseCSV('files/' . $_SESSION['csv-file']);
 
-		$zip->close();
-//var_dump(dirname(__FILE__));
-		$app->response->headers->set('Content-Type', 'application/zip');
-		$app->response->headers->set('Content-Length', filesize($file));
-		$app->response->headers->set('Content-Disposition', 'attachment; filename="'.$file.'"');
-		readfile($file); 
+        $csv_ordered = array();
+        //var_dump($csv_mapping_user);
+        array_shift($csv);
+        
+        $dir = "./files/" . $code;
+        if (!is_dir($dir)) {
+            mkdir($dir);
+        }
+        
+        foreach ($csv as $num => $line) {
+            foreach ($csv_mapping_user as $column => $value) {
+                switch ($column) {
+                    case 'ProductCode':
+                        $sku = $line[$value-1];
+                        if (isset($line[$value - 1]) AND !empty($line[$value - 1])) {
+                            $csv_ordered[$num][$column] = $line[$value - 1];
+                        }
+                        break;
+                    case 'ProductMainImage':
+                        if($line[$value-1]) {
+                            //echo 'from: '.$line[$value-1].' to: '.'files/'.$code.'/'.$line[0].'.'.pathinfo($line[$value-1], PATHINFO_EXTENSION).'<br />';
+                            copyRemote($line[$value-1], 'files/'.$code.'/'.$sku.'.'.pathinfo($line[$value-1], PATHINFO_EXTENSION)); // TODO add queue
+                        }
+                        
+                        
+                        break;
+                    default:
+                        if (isset($line[$value - 1]) AND !empty($line[$value - 1])) {
+                            $csv_ordered[$num][$column] = $line[$value - 1];
+                        }
+                        break;
+                }                
+            }
+        }
+        //die();
+        
 
-		unlink($file); 
-		
-		//$app->response->headers->set('Location', $zipname);
-		
-		//header('Content-Type: application/zip');
-		//header("Content-Disposition: attachment; filename='".$zipname."'");
-		//header('Content-Length: ' . filesize($zipname));
-		//header("Location: ".$zipname);
-		
-		
+        $fp = fopen($dir . '/' . $filename, 'w');
+
+        foreach ($csv_ordered as $fields) {
+            fputcsv($fp, $fields);
+        }
+
+        fclose($fp);
+
+        //$test = addzip (dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME) , dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME).".zip" );
+        //var_dump($test);
+
+        /* Export zip file */
+        $zip = new ZipArchive;
+        if (!$zip->open(dirname(__FILE__) . '/files/' . $code . '.zip', ZipArchive::CREATE))
+            die("Failed to create archive\n");
+        if ($handle = opendir(dirname(__FILE__) . '/files/' . $code)) {
+            while (false !== ($entry = readdir($handle))) {
+                //var_dump($entry);
+                if ($entry != "." && $entry != "..") {
+                    //var_dump('adding file: '.dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME).'/'.$entry,$zip->addFile(dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME).'/'.$entry,$entry));
+                    $zip->addFile(dirname(__FILE__) . '/files/' . pathinfo($filename, PATHINFO_FILENAME) . '/' . $entry, $entry);
+                }
+            }
+            closedir($handle);
+        } else {
+            die("Failed to add dir\n");
+        }
+        //var_dump($zip->status,$zip->statusSys, $zip->filename, $zip->numFiles);
+        //var_dump('zip close: ',$zip->close());
+        if ($zip->close()) {
+
+            $app->response->headers->set('Content-Type', 'application/zip');
+            $app->response->headers->set('Content-Length', filesize(dirname(__FILE__) . '/files/' . $code . '.zip'));
+            $app->response->headers->set('Content-Disposition', 'attachment; filename="' . $code . '.zip' . '"');
+            readfile(dirname(__FILE__) . '/files/' . $code . '.zip');
+
+            //unlink(dirname(__FILE__).'/files/'.$code.'.zip');		
+            //$app->response->headers->set('Location', $code.'.zip');
+        }
     } else {
-		//var_dump($_SESSION);
-		$csv = parseCSV('files/'.$_SESSION['csv-file']);
-		
-		$csv_uploaded_columns = $csv[0];
-		array_unshift($csv_uploaded_columns, "N/A");
-		
-		$app->render('step2.php', array('csv_mapping' => $csv_mapping, 'csv_uploaded_columns' => $csv_uploaded_columns, $flash)); 
-	}    
-})->via('GET','POST');
+        //var_dump($_SESSION);
+        $csv = parseCSV('files/' . $_SESSION['csv-file']);
+
+        $csv_uploaded_columns = $csv[0];
+        array_unshift($csv_uploaded_columns, "N/A");
+
+        $app->render('step2.php', array('csv_mapping' => $csv_mapping, 'csv_uploaded_columns' => $csv_uploaded_columns));
+    }
+})->via('GET', 'POST');
 
 
 // POST route
-/*$app->post( '/step1', function () use ($app) {
-		$req = $app->request;
-		$file = $req->getMediaType();
-		$app->view()->setData(array('title' => 'This is a POST route', 'body' => $file));
-		$app->render('step2.php');
-});*/
+/* $app->post( '/step1', function () use ($app) {
+  $req = $app->request;
+  $file = $req->getMediaType();
+  $app->view()->setData(array('title' => 'This is a POST route', 'body' => $file));
+  $app->render('step2.php');
+  }); */
 
 // PUT route
 $app->put(
-    '/put',
-    function () {
-        echo 'This is a PUT route';
-    }
+        '/put', function () {
+    echo 'This is a PUT route';
+}
 );
 
 // PATCH route
@@ -198,10 +210,9 @@ $app->patch('/patch', function () {
 
 // DELETE route
 $app->delete(
-    '/delete',
-    function () {
-        echo 'This is a DELETE route';
-    }
+        '/delete', function () {
+    echo 'This is a DELETE route';
+}
 );
 
 $app->run();
@@ -210,9 +221,9 @@ function copyRemote($fromUrl, $toFile) {
     try {
         $client = new Guzzle\Http\Client();
         $response = $client->get($fromUrl)
-            //->setAuth('login', 'password'))
-            ->setResponseBody($toFile)
-            ->send();
+                //->setAuth('login', 'password'))
+                ->setResponseBody($toFile)
+                ->send();
         return true;
     } catch (Exception $e) {
         // Log the error or something
@@ -221,79 +232,25 @@ function copyRemote($fromUrl, $toFile) {
 }
 
 function parseCSV($file_path) {
-	$csv = array();
-		
-		if(($handle = fopen($file_path, 'r')) !== FALSE) {
-            // necessary if a large csv file
-            set_time_limit(0);
-			$nn = 0;
+    $csv = array();
 
-			//while (($data = fgetcsv($temp)) !== false) {
-            while(($data = fgetcsv($handle, 0, ';','"')) !== FALSE) {
-                //$csv[] = $data;
-				// Count the total keys in the row.
-				$c = count($data);
-				// Populate the multidimensional array.
-				for ($x=0;$x<$c;$x++)
-				{
-					$csv[$nn][$x] = $data[$x];
-				}
-				$nn++;
+    if (($handle = fopen($file_path, 'r')) !== FALSE) {
+        // necessary if a large csv file
+        set_time_limit(0);
+        $nn = 0;
+
+        //while (($data = fgetcsv($temp)) !== false) {
+        while (($data = fgetcsv($handle, 0, ';', '"')) !== FALSE) {
+            //$csv[] = $data;
+            // Count the total keys in the row.
+            $c = count($data);
+            // Populate the multidimensional array.
+            for ($x = 0; $x < $c; $x++) {
+                $csv[$nn][$x] = $data[$x];
             }
-            fclose($handle);
+            $nn++;
         }
-	return $csv;
-}
-
-// compress all files in the source directory to destination directory 
-    function addzip($source , $destination)
-    {
-          function list_directory( $source)
-              {
-                if (is_dir($source))
-                {
-                    $files = dir($source);
-
-                        $i = 0 ;
-                      while ( FALSE !== ($entry = $files->read())) 
-                      {
-                        if ( $entry != '.' && $entry != '..' )
-                        {
-                          $filename[$i] = $source.$entry;
-                          $i++;
-                        }
-                       }
-                      $files->close();
-                      return ($filename);
-                  }
-
-              }
-        function create_zip($files = array(),$dest = '',$overwrite = false) {
-            if(file_exists($dest) && !$overwrite) { return false; }
-            $valid_files = array();
-            if(is_array($files)) {
-                foreach($files as $file) {
-                    if(file_exists($file)) {
-                        $valid_files[] = $file;
-                    }
-                }
-            }
-            if(count($valid_files)) {
-                $zip = new ZipArchive();
-                if($zip->open($dest,$overwrite ? ZIPARCHIVE::OVERWRITE : ZIPARCHIVE::CREATE) !== true) {
-                    return false;
-                }
-                foreach($valid_files as $file) {
-                    $zip->addFile($file,$file);
-                }               
-                $zip->close();              
-                return file_exists($dest);
-            }
-            else
-            {
-                return false;
-            }
-        }
-        $files_to_zip = list_directory($source);
-        $result = create_zip($files_to_zip,$destination);
+        fclose($handle);
     }
+    return $csv;
+}
