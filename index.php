@@ -1,9 +1,13 @@
 <?php
+
 /*
  * Copyright (c) 2013 Todor Georgiev under GPL v2
  * See the file LICENSE for copying permission.
  * http://choosealicense.com/licenses/gpl-v2/
  */
+
+ini_set('memory_limit', '256M'); // memory_limit 256M
+set_time_limit(60); // max_execution_time 60 sec
 
 require 'vendor/autoload.php';
 
@@ -36,6 +40,9 @@ $app->view()->parserOptions = array(
 $app->view->parserExtensions = array(
     new \Slim\Views\TwigExtension(),
 );
+
+$app->view->setTemplatesDirectory($app->config('templates.path')); // https://github.com/codeguy/Slim-Views/issues/2#issuecomment-22371934
+$app->view()->getEnvironment()->addGlobal('baseUrl', 'http://tmp.local/ecommerce-products-import/');
 
 
 // GET route
@@ -94,7 +101,7 @@ $app->map('/step2', function () use ($app) {
 
         $csv_mapping_user = array_flip($csv_mapping);
         foreach ($csv_mapping_user as $key => $column) {
-            $csv_mapping_user[$key] = $_POST[$key];
+            $csv_mapping_user[$key] = (isset($_POST[$key]) AND !empty($_POST[$key])) ? $_POST[$key] : false;
         }
         //var_dump($csv_mapping_user);
 
@@ -103,46 +110,57 @@ $app->map('/step2', function () use ($app) {
         $csv_ordered = array();
         //var_dump($csv_mapping_user);
         array_shift($csv);
-        
+
         $dir = "./files/" . $code;
         if (!is_dir($dir)) {
             mkdir($dir);
         }
-        
+
+        $image_queue = array();
+        $k = 0;
         foreach ($csv as $num => $line) {
             foreach ($csv_mapping_user as $column => $value) {
                 switch ($column) {
                     case 'ProductCode':
-                        $sku = $line[$value-1];
+                        $sku = $line[$value - 1];
                         if (isset($line[$value - 1]) AND !empty($line[$value - 1])) {
                             $csv_ordered[$num][$column] = $line[$value - 1];
                         }
                         break;
                     case 'ProductMainImage':
-                        if($line[$value-1]) {
+                        if ($line[$value - 1]) {
                             //echo 'from: '.$line[$value-1].' to: '.'files/'.$code.'/'.$line[0].'.'.pathinfo($line[$value-1], PATHINFO_EXTENSION).'<br />';
-                            copyRemote($line[$value-1], 'files/'.$code.'/'.$sku.'.'.pathinfo($line[$value-1], PATHINFO_EXTENSION)); // TODO add queue
+                            $image_queue[$k]['from'] = $line[$value - 1];
+                            $image_queue[$k]['dest'] = 'files/' . $code . '/' . $sku . '.' . pathinfo($line[$value - 1], PATHINFO_EXTENSION);
+                            //copyRemote($line[$value - 1], 'files/' . $code . '/' . $sku . '.' . pathinfo($line[$value - 1], PATHINFO_EXTENSION)); // TODO add queue
+                            $k++;
                         }
-                        
-                        
+
+
                         break;
                     default:
                         if (isset($line[$value - 1]) AND !empty($line[$value - 1])) {
                             $csv_ordered[$num][$column] = $line[$value - 1];
                         }
                         break;
-                }                
+                }
             }
         }
         //die();
-        
 
+
+        // Creates summercart ready csv
         $fp = fopen($dir . '/' . $filename, 'w');
-
         foreach ($csv_ordered as $fields) {
             fputcsv($fp, $fields);
         }
-
+        fclose($fp);
+        
+        // Creates temp file for image downloads
+        $fp = fopen($dir . '/image_queue.csv', 'w');
+        foreach ($image_queue as $fields) {
+            fputcsv($fp, $fields);
+        }
         fclose($fp);
 
         //$test = addzip (dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME) , dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME).".zip" );
@@ -150,9 +168,11 @@ $app->map('/step2', function () use ($app) {
 
         /* Export zip file */
         $zip = new ZipArchive;
-        if (!$zip->open(dirname(__FILE__) . '/files/' . $code . '.zip', ZipArchive::CREATE))
+        if (!$zip->open(dirname(__FILE__) . '/files/' . $code . '.zip', ZipArchive::CREATE)) {
             die("Failed to create archive\n");
-        if ($handle = opendir(dirname(__FILE__) . '/files/' . $code)) {
+        }
+        $handle = opendir(dirname(__FILE__) . '/files/' . $code);
+        if ($handle) {
             while (false !== ($entry = readdir($handle))) {
                 //var_dump($entry);
                 if ($entry != "." && $entry != "..") {
@@ -186,6 +206,58 @@ $app->map('/step2', function () use ($app) {
         $app->render('step2.php', array('csv_mapping' => $csv_mapping, 'csv_uploaded_columns' => $csv_uploaded_columns));
     }
 })->via('GET', 'POST');
+
+$app->map('/download/:code_b64', function ($code_b64) use ($app) {
+    $code = base64_decode($code_b64);
+    if(is_file('files/'.$code.'/image_queue.csv')) {
+        // Reads image queue file
+        $image_queue = array();
+        $i = 0;
+        if (($handle = fopen('files/'.$code.'/image_queue.csv', "r+")) !== FALSE) {
+            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                //$num = count($data);
+                //echo "<p> $num fields in line $row: <br /></p>\n";
+                $image_queue[$i]['from'] = $data[0];
+                $image_queue[$i]['to'] = $data[1];
+                //var_dump($data);
+                /*foreach ($data as $value) {
+                    echo $value . "<br />\n";
+                }*/
+                //for ($c=0; $c < $num; $c++) {
+                  //  echo $data[$c] . "<br />\n";
+                //}
+                $i++;
+            }
+            
+            
+            $active_part = array_slice($image_queue, 0, 100);
+            $rest_part = array_slice($image_queue, 100);
+            var_dump($rest_part);
+            if(is_array($active_part) AND !empty($active_part)) {
+                foreach ($active_part as $value) {
+                    copyRemote($value['from'], $value['to']);
+                }
+                //rewind($handle);
+                foreach ($rest_part as $fields) {
+                    fputcsv($handle, $fields);
+                }
+            }
+            fclose($handle);
+        }
+        //$csv = parseCSV('files/'.$code.'/image_queue.csv');
+        //var_dump($csv);
+    } else {
+        die("missing queue\n");
+    }
+    
+    
+    //copyRemote("http://85.14.28.164/d/images/slideshows/0000053031-middle.jpg", 'files/test.jpg');
+    //$pageTitle = 'hello world';
+    //$body = 'sup world';
+    //$app->view()->setData(array('title' => $pageTitle, 'body' => $body));
+    $app->render('download.php', array('code' => $code));
+    //$app->render('../views/index.php', array('title' => 'Sahara'));
+})->via('GET');
 
 
 // POST route

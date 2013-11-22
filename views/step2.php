@@ -8,7 +8,7 @@
     <p class="uk-article-lead">Map Summercart columns with the columns from the provider</p>
     <p>Help text</p>
 	{{filename}}
-    <form id="step2" class="uk-form" action="/ecommerce-products-import/step2" method="POST">
+    <form id="step2" class="uk-form" action="{{ baseUrl }}step2" method="POST">
         <div class="uk-grid">
             <div class="uk-width-1-4"><input class="uk-form-width-medium" type="text" placeholder="{{ csv_mapping[0] }}*" disabled></div>
             <div class="uk-width-1-4">
