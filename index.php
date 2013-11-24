@@ -42,7 +42,7 @@ $app->view->parserExtensions = array(
 );
 
 $app->view->setTemplatesDirectory($app->config('templates.path')); // https://github.com/codeguy/Slim-Views/issues/2#issuecomment-22371934
-$app->view()->getEnvironment()->addGlobal('baseUrl', 'http://tmp.local/ecommerce-products-import/');
+$app->view()->getEnvironment()->addGlobal('baseUrl', 'http://nutrapress.com/ecommerce-products-import/');
 
 
 // GET route
@@ -166,36 +166,7 @@ $app->map('/step2', function () use ($app) {
         //$test = addzip (dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME) , dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME).".zip" );
         //var_dump($test);
 
-        /* Export zip file */
-        $zip = new ZipArchive;
-        if (!$zip->open(dirname(__FILE__) . '/files/' . $code . '.zip', ZipArchive::CREATE)) {
-            die("Failed to create archive\n");
-        }
-        $handle = opendir(dirname(__FILE__) . '/files/' . $code);
-        if ($handle) {
-            while (false !== ($entry = readdir($handle))) {
-                //var_dump($entry);
-                if ($entry != "." && $entry != "..") {
-                    //var_dump('adding file: '.dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME).'/'.$entry,$zip->addFile(dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME).'/'.$entry,$entry));
-                    $zip->addFile(dirname(__FILE__) . '/files/' . pathinfo($filename, PATHINFO_FILENAME) . '/' . $entry, $entry);
-                }
-            }
-            closedir($handle);
-        } else {
-            die("Failed to add dir\n");
-        }
-        //var_dump($zip->status,$zip->statusSys, $zip->filename, $zip->numFiles);
-        //var_dump('zip close: ',$zip->close());
-        if ($zip->close()) {
-
-            $app->response->headers->set('Content-Type', 'application/zip');
-            $app->response->headers->set('Content-Length', filesize(dirname(__FILE__) . '/files/' . $code . '.zip'));
-            $app->response->headers->set('Content-Disposition', 'attachment; filename="' . $code . '.zip' . '"');
-            readfile(dirname(__FILE__) . '/files/' . $code . '.zip');
-
-            //unlink(dirname(__FILE__).'/files/'.$code.'.zip');		
-            //$app->response->headers->set('Location', $code.'.zip');
-        }
+        $app->redirect('./download/'.base64_encode($code));
     } else {
         //var_dump($_SESSION);
         $csv = parseCSV('files/' . $_SESSION['csv-file']);
@@ -209,6 +180,10 @@ $app->map('/step2', function () use ($app) {
 
 $app->map('/download/:code_b64', function ($code_b64) use ($app) {
     $code = base64_decode($code_b64);
+    $images_downloaded = 0;
+    $images_todownload = 0;
+    $message = false;
+    $zip_file = false;
     if(is_file('files/'.$code.'/image_queue.csv')) {
         // Reads image queue file
         $image_queue = array();
@@ -228,34 +203,78 @@ $app->map('/download/:code_b64', function ($code_b64) use ($app) {
                 //}
                 $i++;
             }
-            
+            fclose($handle);
             
             $active_part = array_slice($image_queue, 0, 100);
             $rest_part = array_slice($image_queue, 100);
-            var_dump($rest_part);
+            //var_dump("active part: ", count($active_part));
+            //var_dump("rest part: ", count($rest_part));
             if(is_array($active_part) AND !empty($active_part)) {
                 foreach ($active_part as $value) {
                     copyRemote($value['from'], $value['to']);
                 }
                 //rewind($handle);
-                foreach ($rest_part as $fields) {
-                    fputcsv($handle, $fields);
+                if(count($rest_part) > 0) {
+                    $handle2 = fopen('files/'.$code.'/image_queue.csv', "w");
+                    foreach ($rest_part as $fields) {
+                        fputcsv($handle2, $fields);
+                    }
+                    fclose($handle2);
+                } else {
+                    unlink('files/'.$code.'/image_queue.csv');
                 }
+                $images_todownload = count($rest_part);
+                $images_downloaded = count(scandir('files/' . $code)) - 3;
             }
-            fclose($handle);
+            
         }
         //$csv = parseCSV('files/'.$code.'/image_queue.csv');
         //var_dump($csv);
     } else {
-        die("missing queue\n");
-    }
+        $message = ": Done";
+                if (is_dir('files/' . $code)) {
+                    $images_downloaded = count(scandir('files/' . $code)) - 3;
+
+                    /* Export zip file */
+                    $filename = $_SESSION['csv-file'];
+                    $zip = new ZipArchive;
+                    if (!$zip->open(dirname(__FILE__) . '/files/' . $code . '.zip', ZipArchive::CREATE)) {
+                        die("Failed to create archive\n");
+                    }
+                    $handle = opendir(dirname(__FILE__) . '/files/' . $code);
+                    if ($handle) {
+                        while (false !== ($entry = readdir($handle))) {
+                            //var_dump($entry);
+                            if ($entry != "." && $entry != "..") {
+                                //var_dump('adding file: '.dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME).'/'.$entry,$zip->addFile(dirname(__FILE__).'/files/'.pathinfo($filename, PATHINFO_FILENAME).'/'.$entry,$entry));
+                                $zip->addFile(dirname(__FILE__) . '/files/' . pathinfo($filename, PATHINFO_FILENAME) . '/' . $entry, $entry);
+                            }
+                        }
+                        closedir($handle);
+                    } else {
+                        die("Failed to add dir\n");
+                    }
+                    //var_dump($zip->status,$zip->statusSys, $zip->filename, $zip->numFiles);
+                    //var_dump('zip close: ',$zip->close());
+                    if ($zip->close()) {
+                        $zip_file = '../files/' . $code . '.zip';
+                        //$app->response->headers->set('Content-Type', 'application/zip');
+                        //$app->response->headers->set('Content-Length', filesize(dirname(__FILE__) . '/files/' . $code . '.zip'));
+                        //$app->response->headers->set('Content-Disposition', 'attachment; filename="' . $code . '.zip' . '"');
+                        //readfile(dirname(__FILE__) . '/files/' . $code . '.zip');
+
+                        //unlink(dirname(__FILE__).'/files/'.$code.'.zip');		
+                        //$app->response->headers->set('Location', $code.'.zip');
+                    }
+                }
+            }
     
     
     //copyRemote("http://85.14.28.164/d/images/slideshows/0000053031-middle.jpg", 'files/test.jpg');
     //$pageTitle = 'hello world';
     //$body = 'sup world';
     //$app->view()->setData(array('title' => $pageTitle, 'body' => $body));
-    $app->render('download.php', array('code' => $code));
+    $app->render('download.php', array('message' => $message, 'code' => $code, 'images_downloaded' => $images_downloaded, 'images_todownload' => $images_todownload, 'zip_file' => $zip_file));
     //$app->render('../views/index.php', array('title' => 'Sahara'));
 })->via('GET');
 
