@@ -118,6 +118,7 @@ $app->map('/step2', function () use ($app) {
 
         $image_queue = array();
         $k = 0;
+		
         foreach ($csv as $num => $line) {
             foreach ($csv_mapping_user as $column => $value) {
                 switch ($column) {
@@ -147,15 +148,29 @@ $app->map('/step2', function () use ($app) {
             }
         }
         //die();
+		$csv_headers = array();
+		foreach ($csv_mapping_user as $key => $value) {
+			if($value AND $key!='ProductMainImage') {
+				$csv_headers[] = $key;
+			}
+		}
 
-
+		array_unshift($csv_ordered, $csv_headers);
         // Creates summercart ready csv
         $fp = fopen($dir . '/' . $filename, 'w');
+		//$j = 0;
         foreach ($csv_ordered as $fields) {
+			/*if($j == 1) {
+				array_walk($fields, 'encodeCSV');
+				$test = mb_detect_encoding($fields[0]);
+				var_dump($test);
+			}
+			$j++;*/
+			//array_walk($fields, 'encodeCSV');
             fputcsv($fp, $fields);
         }
         fclose($fp);
-        
+        //die();
         // Creates temp file for image downloads
         $fp = fopen($dir . '/image_queue.csv', 'w');
         foreach ($image_queue as $fields) {
@@ -344,4 +359,19 @@ function parseCSV($file_path) {
         fclose($handle);
     }
     return $csv;
+}
+
+function encodeCSV(&$value, $key){
+    $value = iconv('ASCII', 'UTF-8', $value);
+}
+
+function detect_encoding($string) {  
+  static $list = array('utf-8', 'windows-1251', 'ISO-8859-1', 'ASCII');
+  
+  foreach ($list as $item) {
+    $sample = iconv($item, $item, $string);
+    if (md5($sample) == md5($string))
+      return $item;
+  }
+  return null;
 }
