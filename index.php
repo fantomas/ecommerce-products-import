@@ -186,7 +186,7 @@ $app->map('/step2', function () use ($app) {
         //var_dump($_SESSION);
         $csv = parseCSV('files/' . $_SESSION['csv-file']);
 
-        $csv_uploaded_columns = $csv[0];
+        $csv_uploaded_columns = (isset($csv[0])) ? $csv[0] : array();
         array_unshift($csv_uploaded_columns, "N/A");
 
         $app->render('step2.php', array('csv_mapping' => $csv_mapping, 'csv_uploaded_columns' => $csv_uploaded_columns));
