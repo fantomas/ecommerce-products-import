@@ -136,9 +136,17 @@ $app->map('/step2', function () use ($app) {
                             //copyRemote($line[$value - 1], 'files/' . $code . '/' . $sku . '.' . pathinfo($line[$value - 1], PATHINFO_EXTENSION)); // TODO add queue
                             $k++;
                         }
-
-
                         break;
+					case 'CategoryName': //enclose CategoryName with "" in order to work properly for summercart version 4
+						if (isset($line[$value - 1]) AND !empty($line[$value - 1])) {
+                            $csv_ordered[$num][$column] = '"'.$line[$value - 1].'"';
+                        }
+						break;
+					case 'ProductDetailedDescription': //strip tags from ProductDetailedDescription as they are not allowed in version 4
+						if (isset($line[$value - 1]) AND !empty($line[$value - 1])) {
+                            $csv_ordered[$num][$column] = strip_tags($line[$value - 1]);
+                        }
+						break;
                     default:
                         if (isset($line[$value - 1]) AND !empty($line[$value - 1])) {
                             $csv_ordered[$num][$column] = $line[$value - 1];
